@@ -1,3 +1,10 @@
+#This project stuff
+.idea/
+.mypy_cache/
+.pytest_cache/
+.hypothesis/
+
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
