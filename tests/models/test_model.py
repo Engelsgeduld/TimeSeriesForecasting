@@ -4,6 +4,7 @@ import pandas as pd
 import pytest
 from hypothesis import given, settings
 from sklearn.dummy import DummyRegressor
+from sklearn.metrics import root_mean_squared_error
 
 from src.models.model import TimeSeriesModel
 
@@ -12,7 +13,7 @@ class TestTimeSeriesModel:
     def setup_model(self):
         trend_models = {"Regressor": [DummyRegressor(strategy="mean")]}
         seasonal_models = {"Regressor": [DummyRegressor(strategy="mean")]}
-        return TimeSeriesModel(trend_models, seasonal_models)
+        return TimeSeriesModel(trend_models, seasonal_models, root_mean_squared_error)
 
     def create_x_dataframe(self, data, features_number, key_name):
         keys_column = [key for key, count in data for _ in range(count)]
