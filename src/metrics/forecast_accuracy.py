@@ -3,6 +3,7 @@ from typing import Sequence
 import numpy as np
 import pandas as pd
 
+
 def forecast_accuracy(
     df: pd.DataFrame,
     y_true_index: str = "Actual",
@@ -38,7 +39,7 @@ def forecast_accuracy(
     Raises:
         ValueError: If any of `time_index`, `ae_gr_cols`, or `out_gr_cols` columns are missing.
     """
-    ae_gr_cols, out_gr_cols = list(ae_gr_cols), list(out_gr_cols) # For mypy
+    ae_gr_cols, out_gr_cols = list(ae_gr_cols), list(out_gr_cols)  # For mypy
     required_cols = {time_index, y_true_index, y_pred_index} | set(ae_gr_cols) | set(out_gr_cols)
     missing_cols = required_cols - set(df.columns)
 
