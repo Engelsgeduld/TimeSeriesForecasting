@@ -5,6 +5,7 @@
 .hypothesis/
 docs/Makefile
 docs/make.bat
+datasets
 
 
 # Byte-compiled / optimized / DLL files
