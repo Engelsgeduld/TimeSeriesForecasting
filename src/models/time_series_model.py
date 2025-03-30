@@ -65,7 +65,7 @@ class TimeSeriesModel(BaseEstimator, RegressorMixin):
         self.best_models_: dict[str, tuple[BaseEstimator, BaseEstimator]] = dict()
         self.known_keys: Optional[NDArray] = None
 
-    def fit(self, X: pd.DataFrame, y: pd.DataFrame | pd.Series) -> "TimeSeriesModel":
+    def fit(self, X: pd.DataFrame, y: pd.DataFrame) -> "TimeSeriesModel":
         """
         Trains the model by selecting the best trend and seasonal models for each key.
 
@@ -78,7 +78,7 @@ class TimeSeriesModel(BaseEstimator, RegressorMixin):
         Args:
             X (pd.DataFrame):
                 Feature dataframe containing a column with unique keys for different time series.
-            y (pd.DataFrame | pd.Series):
+            y (pd.DataFrame):
                 Target dataframe containing trend and seasonal values.
 
         Returns:
@@ -270,7 +270,8 @@ class TimeSeriesModel(BaseEstimator, RegressorMixin):
         season = y[mask][self.seasonal_index]
         return train, trend, season
 
-    def _create_pipelines(self, models: list[tuple[Any, dict]]) -> list[dict[str, list]]:
+    @staticmethod
+    def _create_pipelines(models: list[tuple[Any, dict]]) -> list[dict[str, list]]:
         """
         Creates a list of pipelines for regression models with their corresponding parameters.
 
