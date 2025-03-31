@@ -3,6 +3,9 @@
 .mypy_cache/
 .pytest_cache/
 .hypothesis/
+docs/Makefile
+docs/make.bat
+datasets
 
 
 # Byte-compiled / optimized / DLL files
