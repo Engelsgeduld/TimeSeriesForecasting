@@ -4,7 +4,6 @@ import pandas as pd
 import pytest
 from hypothesis import given, settings
 from sklearn.dummy import DummyRegressor
-from sklearn.metrics import root_mean_squared_error
 
 from src.models.time_series_model import TimeSeriesModel
 
