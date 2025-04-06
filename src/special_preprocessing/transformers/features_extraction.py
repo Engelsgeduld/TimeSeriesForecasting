@@ -1,4 +1,5 @@
 import datetime
+from typing import Optional
 
 import pandas as pd
 from sklearn.base import BaseEstimator, TransformerMixin
@@ -7,10 +8,8 @@ from workalendar.europe import Russia
 
 
 class HolidayTransformer(BaseEstimator, TransformerMixin):
-    def __init__(self):
-        self.holidays = None
-
-    def get_holidays(self, year):
+    @staticmethod
+    def get_holidays(year):
         names = [
             "New year",
             "Christmas",
@@ -25,55 +24,65 @@ class HolidayTransformer(BaseEstimator, TransformerMixin):
         holidays = []
         for name in names:
             holidays.append((calc[name], name))
-            holidays.append(
-                (calc[name] - datetime.timedelta(days=1), f"Day before {name}")
-            )
-            holidays.append(
-                (calc[name] - datetime.timedelta(days=2), f"Two days before {name}")
-            )
+            holidays.append((calc[name] - datetime.timedelta(days=1), f"Day before {name}"))
+            holidays.append((calc[name] - datetime.timedelta(days=2), f"Two days before {name}"))
         return holidays
 
-    def check_holiday(self, date):
-        for holiday in self.holidays:
+    @staticmethod
+    def check_holiday(date, holidays):
+        for holiday in holidays:
             if (date.date() - holiday[0]).days <= 21:
                 return holiday[1]
         return "No holiday"
 
     def fit(self, X, y=None):
-        years = X["date"].dt.year.unique()
-        self.holidays = [h for year in years for h in self.get_holidays(year)]
         return self
 
     def transform(self, X):
+        years = X["date"].dt.year.unique()
+        holidays = [h for year in years for h in self.get_holidays(year)]
         X = X.copy()
-        X["holiday"] = X["date"].apply(self.check_holiday)
+        X["holiday"] = X["date"].apply(self.check_holiday, args=([holidays]))
         X["dayofyear"] = X["date"].dt.dayofyear
         return X
 
 
 class MeanWeekMonthTransformer(BaseEstimator, TransformerMixin):
-    def fit(self, X, y=None):
+    def __init__(self):
+        self.month_avg: Optional[pd.DataFrame] = None
+        self.week_avg: Optional[pd.DataFrame] = None
+
+    def fit(self, X: pd.DataFrame, y=None) -> "Self":
+        X["month"] = X["date"].dt.month
+        X["week"] = X["date"].dt.isocalendar().week
+        self.month_avg = X.groupby(["key", "month"], as_index=False).agg({"ship": "mean"})
+        self.week_avg = X.groupby(["key", "week"], as_index=False).agg({"ship": "mean"})
+        self.month_avg["month_avg"] = self.month_avg["ship"]
+        self.week_avg["week_avg"] = self.week_avg["ship"]
+        self.month_avg.drop(columns=["ship"], inplace=True)
+        self.week_avg.drop(columns=["ship"], inplace=True)
         return self
 
     def transform(self, X):
-        X = X.copy()
         X["month"] = X["date"].dt.month
         X["week"] = X["date"].dt.isocalendar().week
-        X["mean_month_ship"] = X.groupby(["key", "month"])["ship"].transform("mean")
-        X["mean_week_ship"] = X.groupby(["key", "week"])["ship"].transform("mean")
-        X.drop(["week", "month"], axis=1, inplace=True)
+        X = X.merge(self.month_avg, on=["key", "month"], how="left")
+        X = X.merge(self.week_avg, on=["key", "week"], how="left")
+        X.drop(columns=["month", "week"], inplace=True)
         return X
 
 
 class FourierFeaturesTransformer(BaseEstimator, TransformerMixin):
     def __init__(self, order=4):
         self.order = order
-        self.dp = None
 
     def fit(self, X, y=None):
-        date_index = pd.DatetimeIndex(sorted(X["date"].unique()))
+        return self
+
+    def transform(self, X):
+        date_index = pd.date_range(X["date"].min(), X["date"].max(), freq="D")
         fourier = CalendarFourier(freq="A", order=self.order)
-        self.dp = DeterministicProcess(
+        dp = DeterministicProcess(
             index=date_index,
             constant=False,
             order=0,
@@ -81,11 +90,7 @@ class FourierFeaturesTransformer(BaseEstimator, TransformerMixin):
             additional_terms=[fourier],
             drop=True,
         )
-        return self
-
-    def transform(self, X):
-        X = X.copy()
-        fourier_features = self.dp.in_sample()
+        fourier_features = dp.in_sample()
         X = X.merge(fourier_features, how="left", left_on="date", right_index=True)
 
         for i in range(1, self.order + 1):
@@ -95,9 +100,9 @@ class FourierFeaturesTransformer(BaseEstimator, TransformerMixin):
             X[f"season_sin_{i}"] = X[sin_col]
             X[f"season_neg_sin_{i}"] = -X[sin_col]
 
-        columns_to_drop = [
-            f"cos({i},freq=YE-DEC)" for i in range(1, self.order + 1)
-        ] + [f"sin({i},freq=YE-DEC)" for i in range(1, self.order + 1)]
+        columns_to_drop = [f"cos({i},freq=YE-DEC)" for i in range(1, self.order + 1)] + [
+            f"sin({i},freq=YE-DEC)" for i in range(1, self.order + 1)
+        ]
         X.drop(columns=columns_to_drop, inplace=True, errors="ignore")
 
         return X

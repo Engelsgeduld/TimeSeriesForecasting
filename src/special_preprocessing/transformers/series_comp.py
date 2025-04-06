@@ -3,14 +3,13 @@ from sklearn.base import BaseEstimator, TransformerMixin
 
 
 class GroupByDateTransformer(BaseEstimator, TransformerMixin):
-    def fit(self, X, y=None):
-        return self
+    def __init__(self):
+        self.X_train = None
 
-    def transform(self, X):
-        special_columns = ["ship", "price", "discount.1", "key", "date"]
+    def fit(self, X: pd.DataFrame, y=None) -> "Self":
+        special_columns = ["discount", "price", "discount.1", "key", "date", "ship"]
         other = [col for col in X.columns if col not in special_columns]
         new_data = pd.DataFrame()
-
         keys = X["key"].unique()
         for key in keys:
             df_key = X[X["key"] == key]
@@ -23,14 +22,22 @@ class GroupByDateTransformer(BaseEstimator, TransformerMixin):
                 }
             )
             new_data = pd.concat([new_data, grouped], ignore_index=True)
-        return new_data
+        self.X_train = new_data
+        return self
+
+    def transform(self, X: pd.DataFrame) -> pd.DataFrame:
+        if self.X_train is not None:
+            transformed = self.X_train
+            self.X_train = None
+            return transformed
+        return X
 
 
 class DateRangeFilledTransformer(BaseEstimator, TransformerMixin):
-    def fit(self, X, y=None):
-        return self
+    def __init__(self):
+        self.X_train = None
 
-    def transform(self, X):
+    def fit(self, X: pd.DataFrame, y=None) -> "Self":
         special_columns = ["discount", "price", "discount.1", "key", "date", "ship"]
         other = [col for col in X.columns if col not in special_columns]
 
@@ -45,7 +52,6 @@ class DateRangeFilledTransformer(BaseEstimator, TransformerMixin):
 
             if missing_dates.empty:
                 continue
-
             new_dt = pd.DataFrame(
                 {
                     "date": missing_dates,
@@ -63,6 +69,12 @@ class DateRangeFilledTransformer(BaseEstimator, TransformerMixin):
             missing_data.append(new_dt)
 
         if missing_data:
-            X = pd.concat([X] + missing_data, ignore_index=True)
+            self.X_train = pd.concat([X] + missing_data, ignore_index=True)
+        return self
 
-        return X.sort_values(by=["key", "date"]).reset_index(drop=True)
+    def transform(self, X: pd.DataFrame) -> pd.DataFrame:
+        if self.X_train is not None:
+            transformed = self.X_train
+            self.X_train = None
+            return transformed.sort_values(by=["key", "date"]).reset_index(drop=True)
+        return X

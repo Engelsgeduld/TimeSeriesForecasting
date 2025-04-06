@@ -24,9 +24,7 @@ def select_features(
     if spearman_threshold is None:
         spearman_threshold = np.quantile(spearman_corr.abs(), spearman_quantile)
 
-    selected_features = spearman_corr[
-        abs(spearman_corr) > spearman_threshold
-    ].index.tolist()
+    selected_features = spearman_corr[abs(spearman_corr) > spearman_threshold].index.tolist()
     if not selected_features:
         return []
 

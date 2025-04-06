@@ -2,22 +2,23 @@ from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder
 
-from processing.transformers.features_extraction import (
+from src.special_preprocessing.transformers.features_extraction import (
     FourierFeaturesTransformer,
     HolidayTransformer,
     MeanWeekMonthTransformer,
 )
-from processing.transformers.preprocessing import (
+from src.special_preprocessing.transformers.preprocessing import (
     ChangeTypesTransformer,
+    ConcatenateTransform,
     DropDuplicatesTransformer,
     KeyIndexTransformer,
     NaNHandlerTransformer,
 )
-from processing.transformers.series_comp import (
+from src.special_preprocessing.transformers.series_comp import (
     DateRangeFilledTransformer,
     GroupByDateTransformer,
 )
-from processing.transformers.series_decomposition import SeriesDecompositionTransformer
+from src.special_preprocessing.transformers.series_decomposition import SeriesDecompositionTransformer
 
 
 def features():
@@ -63,6 +64,7 @@ def preprocessing():
     ohe.set_output(transform="pandas")
     pipline = Pipeline(
         steps=[
+            ("concatenate", ConcatenateTransform()),
             ("nan_handel", NaNHandlerTransformer()),
             ("change_types", ChangeTypesTransformer()),
             ("key_index", KeyIndexTransformer()),
@@ -76,15 +78,23 @@ def preprocessing():
 def grouping():
     pipeline = Pipeline(
         steps=[
-            ("group", GroupByDateTransformer()),
             ("fill_data_range", DateRangeFilledTransformer()),
+            ("group", GroupByDateTransformer()),
         ]
     )
     return pipeline
 
 
 def decomposition():
-    pipline = Pipeline(
-        steps=[("series_decomposition", SeriesDecompositionTransformer())]
-    )
+    pipline = Pipeline(steps=[("series_decomposition", SeriesDecompositionTransformer())])
     return pipline
+
+
+preprocessing_pipeline = Pipeline(
+    steps=[
+        ("base preprocessing", preprocessing()),
+        ("grouping", grouping()),
+        ("features extraction", features()),
+        ("decomposition", decomposition()),
+    ]
+)
