@@ -1,4 +1,4 @@
-from typing import Any, Optional
+from typing import Any, Optional, Sequence
 
 import numpy as np
 import pandas as pd
@@ -65,7 +65,7 @@ class TimeSeriesModel(BaseEstimator, RegressorMixin):
         self.best_models_: dict[str, tuple[BaseEstimator, BaseEstimator]] = dict()
         self.known_keys: Optional[NDArray] = None
 
-    def fit(self, X: pd.DataFrame, y: pd.DataFrame) -> "TimeSeriesModel":
+    def fit(self, X_contains: pd.DataFrame | Sequence, y: pd.DataFrame) -> "TimeSeriesModel":
         """
         Trains the model by selecting the best trend and seasonal models for each key.
 
@@ -76,7 +76,7 @@ class TimeSeriesModel(BaseEstimator, RegressorMixin):
         - Stores the best models for future predictions.
 
         Args:
-            X (pd.DataFrame):
+            X_contains (pd.DataFrame | Sequence):
                 Feature dataframe containing a column with unique keys for different time series.
             y (pd.DataFrame):
                 Target dataframe containing trend and seasonal values.
@@ -88,6 +88,10 @@ class TimeSeriesModel(BaseEstimator, RegressorMixin):
         Raises:
             ValueError: If `X` or `y` does not contain the expected columns.
         """
+        if isinstance(X_contains, Sequence):
+            X, y = X_contains
+        else:
+            X = X_contains
         self._validate_X(X)
         self._validate_y(y)
         keys = X[self.keys_index].unique()
@@ -137,7 +141,16 @@ class TimeSeriesModel(BaseEstimator, RegressorMixin):
         forecast_df = pd.DataFrame(forecast_list, columns=[self.keys_index, self.date_index, "Forecast"])
         return forecast_df
 
-    def score(self, X: pd.DataFrame, y: pd.Series, time_index: str = "date", sample_weight: Any = None) -> pd.DataFrame:
+    def score(
+        self,
+        X: pd.DataFrame,
+        y: pd.Series,
+        time_index: str = "date",
+        time_period: str = "Y",
+        ae_gr_columns: Sequence = [],
+        out_gr_columns: Sequence = [],
+        sample_weight: Any = None,
+    ) -> pd.DataFrame:
         """
         Computes the performance score of the model for each key using the forecast accuracy metric.
 
@@ -166,7 +179,9 @@ class TimeSeriesModel(BaseEstimator, RegressorMixin):
         data = X.copy()
         data["Actual"] = y.values
         data = data.merge(y_pred, on=[self.keys_index, self.date_index], how="left")
-        scores = forecast_accuracy(data, time_index=time_index, ae_gr_cols=[self.keys_index])
+        scores = forecast_accuracy(
+            data, time_index=time_index, time_period=time_period, ae_gr_cols=ae_gr_columns, out_gr_cols=out_gr_columns
+        )
         return scores
 
     def _validate_X(self, X: pd.DataFrame) -> None:
