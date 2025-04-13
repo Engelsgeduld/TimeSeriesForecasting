@@ -4,7 +4,7 @@ from sklearn.base import BaseEstimator, TransformerMixin
 
 
 class NaNHandlerTransformer(BaseEstimator, TransformerMixin):
-    def fit(self, X: pd.DataFrame, y=None) -> "Self":
+    def fit(self, X: pd.DataFrame, y=None) -> "NaNHandlerTransformer":
         return self
 
     def transform(self, X: pd.DataFrame) -> pd.DataFrame:
@@ -16,7 +16,7 @@ class NaNHandlerTransformer(BaseEstimator, TransformerMixin):
 
 
 class ChangeTypesTransformer(BaseEstimator, TransformerMixin):
-    def fit(self, X: pd.DataFrame, y=None) -> "Self":
+    def fit(self, X: pd.DataFrame, y=None) -> "ChangeTypesTransformer":
         return self
 
     def transform(self, X: pd.DataFrame) -> pd.DataFrame:
@@ -26,7 +26,7 @@ class ChangeTypesTransformer(BaseEstimator, TransformerMixin):
 
 
 class KeyIndexTransformer(BaseEstimator, TransformerMixin):
-    def fit(self, X: pd.DataFrame, y=None) -> "Self":
+    def fit(self, X: pd.DataFrame, y=None) -> "KeyIndexTransformer":
         return self
 
     def transform(self, X: pd.DataFrame) -> pd.DataFrame:
@@ -37,7 +37,7 @@ class KeyIndexTransformer(BaseEstimator, TransformerMixin):
 
 
 class DropDuplicatesTransformer(BaseEstimator, TransformerMixin):
-    def fit(self, X: pd.DataFrame, y=None) -> "Self":
+    def fit(self, X: pd.DataFrame, y=None) -> "DropDuplicatesTransformer":
         return self
 
     def transform(self, X: pd.DataFrame) -> pd.DataFrame:

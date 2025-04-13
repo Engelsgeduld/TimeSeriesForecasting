@@ -17,7 +17,7 @@ from src.special_preprocessing.transformers.series_comp import DateRangeFilledTr
 from src.special_preprocessing.transformers.series_decomposition import Separation, SeriesDecompositionTransformer
 
 
-def features():
+def features() -> Pipeline:
     ohe = ColumnTransformer(
         transformers=[
             (
@@ -44,7 +44,7 @@ def features():
     return pipline
 
 
-def preprocessing():
+def preprocessing() -> Pipeline:
     cat_cols = ["channel", "level_2", "level_3", "brend", "level_1", "unit"]
     ohe = ColumnTransformer(
         [

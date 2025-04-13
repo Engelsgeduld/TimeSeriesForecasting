@@ -1,15 +1,16 @@
 import datetime
-from typing import Optional
+from typing import Any, Never, Optional
 
 import pandas as pd
 from sklearn.base import BaseEstimator, TransformerMixin
+from sklearn.exceptions import NotFittedError
 from statsmodels.tsa.deterministic import CalendarFourier, DeterministicProcess
 from workalendar.europe import Russia
 
 
 class HolidayTransformer(BaseEstimator, TransformerMixin):
     @staticmethod
-    def get_holidays(year):
+    def get_holidays(year: Any) -> list[tuple[datetime.datetime, str]]:
         names = [
             "New year",
             "Christmas",
@@ -29,30 +30,31 @@ class HolidayTransformer(BaseEstimator, TransformerMixin):
         return holidays
 
     @staticmethod
-    def check_holiday(date, holidays):
+    def check_holiday(date: datetime.datetime, holidays: list[tuple[datetime.datetime, str]]) -> str:
         for holiday in holidays:
-            if (date.date() - holiday[0]).days <= 21:
+            diff: datetime.timedelta = date.date() - holiday[0]
+            if diff.days <= 21:
                 return holiday[1]
         return "No holiday"
 
-    def fit(self, X, y=None):
+    def fit(self, X: pd.DataFrame, y=None) -> "HolidayTransformer":
         return self
 
-    def transform(self, X):
+    def transform(self, X: pd.DataFrame) -> pd.DataFrame:
         years = X["date"].dt.year.unique()
         holidays = [h for year in years for h in self.get_holidays(year)]
         X = X.copy()
-        X["holiday"] = X["date"].apply(self.check_holiday, args=([holidays]))
+        X["holiday"] = X["date"].apply(self.check_holiday, args=(holidays,))
         X["dayofyear"] = X["date"].dt.dayofyear
         return X
 
 
 class MeanWeekMonthTransformer(BaseEstimator, TransformerMixin):
-    def __init__(self):
+    def __init__(self) -> None:
         self.month_avg: Optional[pd.DataFrame] = None
         self.week_avg: Optional[pd.DataFrame] = None
 
-    def fit(self, X: pd.DataFrame, y=None) -> "Self":
+    def fit(self, X: pd.DataFrame, y=None) -> "MeanWeekMonthTransformer":
         X_train = X[X["mark"] == "train"].copy()
         X_train["month"] = X_train["date"].dt.month
         X_train["week"] = X_train["date"].dt.isocalendar().week
@@ -64,7 +66,9 @@ class MeanWeekMonthTransformer(BaseEstimator, TransformerMixin):
         self.week_avg.drop(columns=["ship"], inplace=True)
         return self
 
-    def transform(self, X):
+    def transform(self, X: pd.DataFrame) -> pd.DataFrame:
+        if self.month_avg is None or self.week_avg is None:
+            raise NotFittedError()
         X["month"] = X["date"].dt.month
         X["week"] = X["date"].dt.isocalendar().week
         X = X.merge(self.month_avg, on=["key", "month"], how="left")
@@ -74,10 +78,11 @@ class MeanWeekMonthTransformer(BaseEstimator, TransformerMixin):
 
 
 class FourierFeaturesTransformer(BaseEstimator, TransformerMixin):
-    def __init__(self, order=4):
-        self.order = order
+    def __init__(self, order=4) -> None:
+        self.order: int = order
+        self._is_fitted_: bool = False
 
-    def fit(self, X, y=None):
+    def fit(self, X: pd.DataFrame, y=None) -> "FourierFeaturesTransformer":
         self._is_fitted_ = True
         return self
 

@@ -1,3 +1,5 @@
+from typing import Optional
+
 import pandas as pd
 from sklearn.base import BaseEstimator, TransformerMixin
 from statsmodels.tsa.seasonal import seasonal_decompose
@@ -5,11 +7,11 @@ from statsmodels.tsa.seasonal import seasonal_decompose
 
 class SeriesDecompositionTransformer(BaseEstimator, TransformerMixin):
     def __init__(self, model: str = "additive", extrapolate_trend: str = "freq") -> None:
-        self.model = model
-        self.extrapolate_trend = extrapolate_trend
-        self.X_train_ = None
+        self.model: str = model
+        self.extrapolate_trend: str = extrapolate_trend
+        self.X_train_: Optional[pd.DataFrame] = None
 
-    def fit(self, X_united: pd.DataFrame, y=None) -> "Self":
+    def fit(self, X_united: pd.DataFrame, y=None) -> "SeriesDecompositionTransformer":
         X_train = X_united[X_united["mark"] == "train"]
         decomposed_data = []
 
@@ -39,12 +41,11 @@ class SeriesDecompositionTransformer(BaseEstimator, TransformerMixin):
 
 
 class Separation(BaseEstimator, TransformerMixin):
-    def __init__(self, production_mode=True):
-        self.production_mode = production_mode
-        self.X_train = None
-        self.train_mark = True
+    def __init__(self, production_mode: bool = True) -> None:
+        self.production_mode: bool = production_mode
+        self.X_train_: Optional[pd.DataFrame] = None
 
-    def fit(self, X, y=None):
+    def fit(self, X: pd.DataFrame, y=None) -> "Separation":
         self.X_train_ = X[X["mark"] == "train"].drop(columns=["mark", "ship"])
         return self
 

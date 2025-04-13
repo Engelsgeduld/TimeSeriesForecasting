@@ -4,8 +4,8 @@ from sklearn.base import BaseEstimator, TransformerMixin
 
 
 class GroupByDateTransformer(BaseEstimator, TransformerMixin):
-    def fit(self, X: pd.DataFrame, y=None) -> "Self":
-        self._is_fitted_ = True
+    def fit(self, X: pd.DataFrame, y=None) -> "GroupByDateTransformer":
+        self._is_fitted_: bool = True
         return self
 
     def transform(self, X: pd.DataFrame) -> pd.DataFrame:
@@ -28,8 +28,8 @@ class GroupByDateTransformer(BaseEstimator, TransformerMixin):
 
 
 class DateRangeFilledTransformer(BaseEstimator, TransformerMixin):
-    def fit(self, X: pd.DataFrame, y=None) -> "Self":
-        self._is_fitted_ = True
+    def fit(self, X: pd.DataFrame, y=None) -> "DateRangeFilledTransformer":
+        self._is_fitted_: bool = True
         return self
 
     def transform(self, X: pd.DataFrame) -> pd.DataFrame:
@@ -43,7 +43,7 @@ class DateRangeFilledTransformer(BaseEstimator, TransformerMixin):
 
         for key in unique_keys:
             product_data = X[X["key"] == key]
-            existing_dates = set(product_data["date"])
+            existing_dates = list(set(product_data["date"]))
             missing_dates = date_range.difference(existing_dates)
 
             if missing_dates.empty:

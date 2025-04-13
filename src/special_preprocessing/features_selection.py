@@ -1,3 +1,5 @@
+from typing import Optional
+
 import numpy as np
 import pandas as pd
 from scipy.stats import spearmanr
@@ -5,14 +7,14 @@ from statsmodels.stats.outliers_influence import variance_inflation_factor
 
 
 def select_features(
-    X,
-    y,
-    spearman_threshold=None,
-    spearman_quantile=0.75,
-    vif_threshold=None,
-    vif_quantile=0.75,
+    X: pd.DataFrame,
+    y: pd.DataFrame,
+    spearman_threshold: Optional[float] = None,
+    spearman_quantile: float = 0.75,
+    vif_threshold: Optional[float] = None,
+    vif_quantile: float = 0.75,
 ):
-    def safe_spearman(col):
+    def safe_spearman(col: pd.DataFrame):
         if col.nunique() <= 1:
             return np.nan
         return spearmanr(col, y)[0]
