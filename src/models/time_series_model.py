@@ -65,7 +65,7 @@ class TimeSeriesModel(BaseEstimator, RegressorMixin):
         self.best_models_: dict[str, tuple[BaseEstimator, BaseEstimator]] = dict()
         self.known_keys: Optional[NDArray] = None
 
-    def fit(self, X_contains: pd.DataFrame | Sequence, y: pd.DataFrame) -> "TimeSeriesModel":
+    def fit(self, X: pd.DataFrame, y: Optional[pd.DataFrame] = None) -> "TimeSeriesModel":
         """
         Trains the model by selecting the best trend and seasonal models for each key.
 
@@ -76,7 +76,7 @@ class TimeSeriesModel(BaseEstimator, RegressorMixin):
         - Stores the best models for future predictions.
 
         Args:
-            X_contains (pd.DataFrame | Sequence):
+            X (pd.DataFrame):
                 Feature dataframe containing a column with unique keys for different time series.
             y (pd.DataFrame):
                 Target dataframe containing trend and seasonal values.
@@ -88,12 +88,15 @@ class TimeSeriesModel(BaseEstimator, RegressorMixin):
         Raises:
             ValueError: If `X` or `y` does not contain the expected columns.
         """
-        if isinstance(X_contains, Sequence):
-            X, y = X_contains
+        if y is None:
+            self._validate_X(X)
+            X, y = (
+                X.drop(columns=[self.trend_index, self.seasonal_index]),
+                X[[self.trend_index, self.seasonal_index]],
+            )
         else:
-            X = X_contains
-        self._validate_X(X)
-        self._validate_y(y)
+            self._validate_X_test(X)
+            self._validate_y_test(y)
         keys = X[self.keys_index].unique()
         for key in keys:
             grid_search_trend, grid_search_seasonal = self._setup_searchers()
@@ -126,7 +129,7 @@ class TimeSeriesModel(BaseEstimator, RegressorMixin):
             NotFittedError: If the model has not been trained before calling `predict`.
             ValueError: If `X` contains an unknown key.
         """
-        self._validate_X(X)
+        self._validate_X_test(X)
         if self.known_keys is None or len(self.best_models_) == 0:
             raise NotFittedError
         if not np.all(np.isin(X[self.keys_index].unique(), self.known_keys)):
@@ -139,14 +142,15 @@ class TimeSeriesModel(BaseEstimator, RegressorMixin):
             forecast_values = trend_pred + seasonal_pred
             forecast_list.extend(zip(X.loc[mask, self.keys_index], X.loc[mask, self.date_index], forecast_values))
         forecast_df = pd.DataFrame(forecast_list, columns=[self.keys_index, self.date_index, "Forecast"])
-        return forecast_df
+        X = X.merge(forecast_df, on=[self.keys_index, self.date_index], how="left")
+        return X
 
     def score(
         self,
         X: pd.DataFrame,
         y: pd.Series,
         time_index: str = "date",
-        time_period: str = "Y",
+        time_period: str = "YE",
         ae_gr_columns: Sequence = [],
         out_gr_columns: Sequence = [],
         sample_weight: Any = None,
@@ -175,12 +179,10 @@ class TimeSeriesModel(BaseEstimator, RegressorMixin):
             NotFittedError: If the model has not been trained before calling `score`.
             ValueError: If `X` contains an unknown key.
         """
-        y_pred = self.predict(X)
-        data = X.copy()
-        data["Actual"] = y.values
-        data = data.merge(y_pred, on=[self.keys_index, self.date_index], how="left")
+        pred = self.predict(X)
+        pred["Actual"] = y.values
         scores = forecast_accuracy(
-            data, time_index=time_index, time_period=time_period, ae_gr_cols=ae_gr_columns, out_gr_cols=out_gr_columns
+            pred, time_index=time_index, time_period=time_period, ae_gr_cols=ae_gr_columns, out_gr_cols=out_gr_columns
         )
         return scores
 
@@ -198,12 +200,16 @@ class TimeSeriesModel(BaseEstimator, RegressorMixin):
             ValueError: If `keys_index` is not found in `X`.
             ValueError: If `date_index` is not found in `X`.
         """
+        if not self.trend_index in X.columns:
+            raise ValueError(f"{self.trend_index} not in X")
+        if not self.seasonal_index in X.columns:
+            raise ValueError(f"{self.seasonal_index} not in X")
         if not self.keys_index in X.columns:
             raise ValueError(f"{self.keys_index} not in X")
         if not self.date_index in X.columns:
             raise ValueError(f"{self.date_index} not in X")
 
-    def _validate_y(self, y: pd.DataFrame) -> None:
+    def _validate_y_test(self, y: pd.DataFrame) -> None:
         """
         Validates the target dataframe.
 
@@ -220,6 +226,25 @@ class TimeSeriesModel(BaseEstimator, RegressorMixin):
             raise ValueError(f"{self.trend_index} not in y")
         if not self.seasonal_index in y.columns:
             raise ValueError(f"{self.seasonal_index} not in y")
+
+    def _validate_X_test(self, X: pd.DataFrame) -> None:
+        """
+        Validates the input feature dataframe.
+
+        Ensures that the `keys_index` column exists in `X`.
+
+        Args:
+            X (pd.DataFrame):
+                The input feature dataframe.
+
+        Raises:
+            ValueError: If `keys_index` is not found in `X`.
+            ValueError: If `date_index` is not found in `X`.
+        """
+        if not self.keys_index in X.columns:
+            raise ValueError(f"{self.keys_index} not in X")
+        if not self.date_index in X.columns:
+            raise ValueError(f"{self.date_index} not in X")
 
     def _setup_searchers(self) -> tuple[GridSearchCV, GridSearchCV]:
         """
