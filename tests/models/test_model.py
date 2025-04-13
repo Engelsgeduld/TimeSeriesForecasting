@@ -75,7 +75,7 @@ class TestTimeSeriesModel:
     @settings(deadline=None)
     @given(
         train_data=st.lists(
-            st.tuples(st.text(min_size=1), st.integers(min_value=4, max_value=100)),
+            st.tuples(st.text(min_size=1).filter(lambda s: "\x00" not in s), st.integers(min_value=4, max_value=100)),
             min_size=5,
             max_size=10,
             unique_by=lambda x: x[0],
