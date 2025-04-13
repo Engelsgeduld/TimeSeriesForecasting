@@ -9,7 +9,6 @@ from src.special_preprocessing.transformers.features_extraction import (
 )
 from src.special_preprocessing.transformers.preprocessing import (
     ChangeTypesTransformer,
-    ConcatenateTransform,
     DropDuplicatesTransformer,
     KeyIndexTransformer,
     NaNHandlerTransformer,
@@ -18,7 +17,7 @@ from src.special_preprocessing.transformers.series_comp import (
     DateRangeFilledTransformer,
     GroupByDateTransformer,
 )
-from src.special_preprocessing.transformers.series_decomposition import SeriesDecompositionTransformer
+from src.special_preprocessing.transformers.series_decomposition import Separation, SeriesDecompositionTransformer
 
 
 def features():
@@ -64,7 +63,6 @@ def preprocessing():
     ohe.set_output(transform="pandas")
     pipline = Pipeline(
         steps=[
-            ("concatenate", ConcatenateTransform()),
             ("nan_handel", NaNHandlerTransformer()),
             ("change_types", ChangeTypesTransformer()),
             ("key_index", KeyIndexTransformer()),
@@ -75,26 +73,13 @@ def preprocessing():
     return pipline
 
 
-def grouping():
-    pipeline = Pipeline(
-        steps=[
-            ("fill_data_range", DateRangeFilledTransformer()),
-            ("group", GroupByDateTransformer()),
-        ]
-    )
-    return pipeline
-
-
-def decomposition():
-    pipline = Pipeline(steps=[("series_decomposition", SeriesDecompositionTransformer())])
-    return pipline
-
-
 preprocessing_pipeline = Pipeline(
     steps=[
         ("base preprocessing", preprocessing()),
-        ("grouping", grouping()),
+        ("fill_data_range", DateRangeFilledTransformer()),
+        ("grouping", GroupByDateTransformer()),
         ("features extraction", features()),
-        ("decomposition", decomposition()),
+        ("decomposition", SeriesDecompositionTransformer()),
+        ("separation", Separation()),
     ]
 )

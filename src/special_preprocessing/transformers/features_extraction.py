@@ -53,10 +53,11 @@ class MeanWeekMonthTransformer(BaseEstimator, TransformerMixin):
         self.week_avg: Optional[pd.DataFrame] = None
 
     def fit(self, X: pd.DataFrame, y=None) -> "Self":
-        X["month"] = X["date"].dt.month
-        X["week"] = X["date"].dt.isocalendar().week
-        self.month_avg = X.groupby(["key", "month"], as_index=False).agg({"ship": "mean"})
-        self.week_avg = X.groupby(["key", "week"], as_index=False).agg({"ship": "mean"})
+        X_train = X[X["mark"] == "train"].copy()
+        X_train["month"] = X_train["date"].dt.month
+        X_train["week"] = X_train["date"].dt.isocalendar().week
+        self.month_avg = X_train.groupby(["key", "month"], as_index=False).agg({"ship": "mean"})
+        self.week_avg = X_train.groupby(["key", "week"], as_index=False).agg({"ship": "mean"})
         self.month_avg["month_avg"] = self.month_avg["ship"]
         self.week_avg["week_avg"] = self.week_avg["ship"]
         self.month_avg.drop(columns=["ship"], inplace=True)
@@ -77,11 +78,12 @@ class FourierFeaturesTransformer(BaseEstimator, TransformerMixin):
         self.order = order
 
     def fit(self, X, y=None):
+        self._is_fitted_ = True
         return self
 
     def transform(self, X):
         date_index = pd.date_range(X["date"].min(), X["date"].max(), freq="D")
-        fourier = CalendarFourier(freq="A", order=self.order)
+        fourier = CalendarFourier(freq="YE", order=self.order)
         dp = DeterministicProcess(
             index=date_index,
             constant=False,
