@@ -13,10 +13,7 @@ from src.special_preprocessing.transformers.preprocessing import (
     KeyIndexTransformer,
     NaNHandlerTransformer,
 )
-from src.special_preprocessing.transformers.series_comp import (
-    DateRangeFilledTransformer,
-    GroupByDateTransformer,
-)
+from src.special_preprocessing.transformers.series_comp import DateRangeFilledTransformer, GroupByDateTransformer
 from src.special_preprocessing.transformers.series_decomposition import Separation, SeriesDecompositionTransformer
 
 
