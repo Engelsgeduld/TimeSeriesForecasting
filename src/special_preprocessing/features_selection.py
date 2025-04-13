@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Any, Optional
 
 import numpy as np
 import pandas as pd
@@ -13,8 +13,8 @@ def select_features(
     spearman_quantile: float = 0.75,
     vif_threshold: Optional[float] = None,
     vif_quantile: float = 0.75,
-):
-    def safe_spearman(col: pd.DataFrame):
+) -> list[str]:
+    def safe_spearman(col: pd.DataFrame) -> Any:
         if col.nunique() <= 1:
             return np.nan
         return spearmanr(col, y)[0]
@@ -32,7 +32,7 @@ def select_features(
 
     X_selected = X[selected_features].copy()
 
-    def compute_vif(df):
+    def compute_vif(df: pd.DataFrame) -> pd.Series:
         return pd.Series(
             [variance_inflation_factor(df.values, i) for i in range(df.shape[1])],
             index=df.columns,

@@ -1,10 +1,12 @@
+from typing import Optional
+
 import numpy as np
 import pandas as pd
 from sklearn.base import BaseEstimator, TransformerMixin
 
 
 class GroupByDateTransformer(BaseEstimator, TransformerMixin):
-    def fit(self, X: pd.DataFrame, y=None) -> "GroupByDateTransformer":
+    def fit(self, X: pd.DataFrame, y: Optional[pd.DataFrame] = None) -> "GroupByDateTransformer":
         self._is_fitted_: bool = True
         return self
 
@@ -28,7 +30,7 @@ class GroupByDateTransformer(BaseEstimator, TransformerMixin):
 
 
 class DateRangeFilledTransformer(BaseEstimator, TransformerMixin):
-    def fit(self, X: pd.DataFrame, y=None) -> "DateRangeFilledTransformer":
+    def fit(self, X: pd.DataFrame, y: Optional[pd.DataFrame] = None) -> "DateRangeFilledTransformer":
         self._is_fitted_: bool = True
         return self
 

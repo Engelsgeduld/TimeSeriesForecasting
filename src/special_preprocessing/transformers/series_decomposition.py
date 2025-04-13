@@ -11,7 +11,7 @@ class SeriesDecompositionTransformer(BaseEstimator, TransformerMixin):
         self.extrapolate_trend: str = extrapolate_trend
         self.X_train_: Optional[pd.DataFrame] = None
 
-    def fit(self, X_united: pd.DataFrame, y=None) -> "SeriesDecompositionTransformer":
+    def fit(self, X_united: pd.DataFrame, y: Optional[pd.DataFrame] = None) -> "SeriesDecompositionTransformer":
         X_train = X_united[X_united["mark"] == "train"]
         decomposed_data = []
 
@@ -45,7 +45,7 @@ class Separation(BaseEstimator, TransformerMixin):
         self.production_mode: bool = production_mode
         self.X_train_: Optional[pd.DataFrame] = None
 
-    def fit(self, X: pd.DataFrame, y=None) -> "Separation":
+    def fit(self, X: pd.DataFrame, y: Optional[pd.DataFrame] = None) -> "Separation":
         self.X_train_ = X[X["mark"] == "train"].drop(columns=["mark", "ship"])
         return self
 

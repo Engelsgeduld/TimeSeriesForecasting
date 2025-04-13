@@ -37,7 +37,7 @@ class HolidayTransformer(BaseEstimator, TransformerMixin):
                 return holiday[1]
         return "No holiday"
 
-    def fit(self, X: pd.DataFrame, y=None) -> "HolidayTransformer":
+    def fit(self, X: pd.DataFrame, y: Optional[pd.DataFrame] = None) -> "HolidayTransformer":
         return self
 
     def transform(self, X: pd.DataFrame) -> pd.DataFrame:
@@ -54,7 +54,7 @@ class MeanWeekMonthTransformer(BaseEstimator, TransformerMixin):
         self.month_avg: Optional[pd.DataFrame] = None
         self.week_avg: Optional[pd.DataFrame] = None
 
-    def fit(self, X: pd.DataFrame, y=None) -> "MeanWeekMonthTransformer":
+    def fit(self, X: pd.DataFrame, y: Optional[pd.DataFrame] = None) -> "MeanWeekMonthTransformer":
         X_train = X[X["mark"] == "train"].copy()
         X_train["month"] = X_train["date"].dt.month
         X_train["week"] = X_train["date"].dt.isocalendar().week
@@ -78,15 +78,15 @@ class MeanWeekMonthTransformer(BaseEstimator, TransformerMixin):
 
 
 class FourierFeaturesTransformer(BaseEstimator, TransformerMixin):
-    def __init__(self, order=4) -> None:
+    def __init__(self, order: int = 4) -> None:
         self.order: int = order
         self._is_fitted_: bool = False
 
-    def fit(self, X: pd.DataFrame, y=None) -> "FourierFeaturesTransformer":
+    def fit(self, X: pd.DataFrame, y: Optional[pd.DataFrame] = None) -> "FourierFeaturesTransformer":
         self._is_fitted_ = True
         return self
 
-    def transform(self, X):
+    def transform(self, X: pd.DataFrame) -> pd.DataFrame:
         date_index = pd.date_range(X["date"].min(), X["date"].max(), freq="D")
         fourier = CalendarFourier(freq="YE", order=self.order)
         dp = DeterministicProcess(
