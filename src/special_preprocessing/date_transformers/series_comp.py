@@ -30,8 +30,11 @@ class GroupByDateTransformer(BaseEstimator, TransformerMixin):
 
 
 class DateRangeFilledTransformer(BaseEstimator, TransformerMixin):
+    def __init__(self) -> None:
+        self._is_fitted_: bool = False
+
     def fit(self, X: pd.DataFrame, y: Optional[pd.DataFrame] = None) -> "DateRangeFilledTransformer":
-        self._is_fitted_: bool = True
+        self._is_fitted_ = True
         return self
 
     def transform(self, X: pd.DataFrame) -> pd.DataFrame:

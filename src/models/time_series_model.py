@@ -143,6 +143,7 @@ class TimeSeriesModel(BaseEstimator, RegressorMixin):
             forecast_list.extend(zip(X.loc[mask, self.keys_index], X.loc[mask, self.date_index], forecast_values))
         forecast_df = pd.DataFrame(forecast_list, columns=[self.keys_index, self.date_index, "Forecast"])
         X = X.merge(forecast_df, on=[self.keys_index, self.date_index], how="left")
+        X["Forecast"] = X["Forecast"].apply(lambda x: x if x >= 0 else 0)
         return X
 
     def score(
@@ -265,20 +266,10 @@ class TimeSeriesModel(BaseEstimator, RegressorMixin):
         s_models = self._create_pipelines(self.seasonal_models)
 
         grid_search_trend = GridSearchCV(
-            trend_pipe,
-            t_models,
-            cv=self.cv,
-            scoring=self.scoring,
-            verbose=0,
-            n_jobs=-1,
+            trend_pipe, t_models, cv=self.cv, scoring=self.scoring, verbose=0, n_jobs=-1, refit=True
         )
         grid_search_seasonal = GridSearchCV(
-            seasonal_pipe,
-            s_models,
-            cv=self.cv,
-            scoring=self.scoring,
-            verbose=0,
-            n_jobs=-1,
+            seasonal_pipe, s_models, cv=self.cv, scoring=self.scoring, verbose=0, n_jobs=-1, refit=True
         )
         return grid_search_trend, grid_search_seasonal
 

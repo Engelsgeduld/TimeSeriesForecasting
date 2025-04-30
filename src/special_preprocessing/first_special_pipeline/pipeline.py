@@ -2,46 +2,15 @@ from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder
 
-from src.special_preprocessing.transformers.features_extraction import (
-    FourierFeaturesTransformer,
-    HolidayTransformer,
-    MeanWeekMonthTransformer,
-)
-from src.special_preprocessing.transformers.preprocessing import (
+from src.special_preprocessing.date_transformers.features_extraction import FeatureExtractionTransformer
+from src.special_preprocessing.date_transformers.series_comp import DateRangeFilledTransformer, GroupByDateTransformer
+from src.special_preprocessing.date_transformers.series_decomposition import Separation, SeriesDecompositionTransformer
+from src.special_preprocessing.first_special_pipeline.preprocessing import (
     ChangeTypesTransformer,
     DropDuplicatesTransformer,
     KeyIndexTransformer,
     NaNHandlerTransformer,
 )
-from src.special_preprocessing.transformers.series_comp import DateRangeFilledTransformer, GroupByDateTransformer
-from src.special_preprocessing.transformers.series_decomposition import Separation, SeriesDecompositionTransformer
-
-
-def features() -> Pipeline:
-    ohe = ColumnTransformer(
-        transformers=[
-            (
-                "ohe",
-                OneHotEncoder(handle_unknown="ignore", sparse_output=False),
-                ["holiday"],
-            )
-        ],
-        remainder="passthrough",
-        verbose_feature_names_out=False,
-    )
-    ohe.set_output(transform="pandas")
-    pipline = Pipeline(
-        steps=[
-            ("date_feature_transform", HolidayTransformer()),
-            ("ohe", ohe),
-            ("mean_ship_feature", MeanWeekMonthTransformer()),
-            (
-                "fourier_features",
-                FourierFeaturesTransformer(),
-            ),
-        ]
-    )
-    return pipline
 
 
 def preprocessing() -> Pipeline:
@@ -56,6 +25,7 @@ def preprocessing() -> Pipeline:
         ],
         remainder="passthrough",
         verbose_feature_names_out=False,
+        force_int_remainder_cols=False,
     )
     ohe.set_output(transform="pandas")
     pipline = Pipeline(
@@ -75,7 +45,7 @@ preprocessing_pipeline = Pipeline(
         ("base preprocessing", preprocessing()),
         ("fill_data_range", DateRangeFilledTransformer()),
         ("grouping", GroupByDateTransformer()),
-        ("features extraction", features()),
+        ("features extraction", FeatureExtractionTransformer()),
         ("decomposition", SeriesDecompositionTransformer()),
         ("separation", Separation()),
     ]
