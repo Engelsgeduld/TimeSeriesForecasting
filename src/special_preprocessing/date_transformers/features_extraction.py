@@ -3,7 +3,10 @@ from typing import Any, Never, Optional
 
 import pandas as pd
 from sklearn.base import BaseEstimator, TransformerMixin
+from sklearn.compose import ColumnTransformer
 from sklearn.exceptions import NotFittedError
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import OneHotEncoder
 from statsmodels.tsa.deterministic import CalendarFourier, DeterministicProcess
 from workalendar.europe import Russia
 
@@ -113,3 +116,46 @@ class FourierFeaturesTransformer(BaseEstimator, TransformerMixin):
         X.drop(columns=columns_to_drop, inplace=True, errors="ignore")
 
         return X
+
+
+class FeatureExtractionTransformer(BaseEstimator, TransformerMixin):
+    def __init__(self) -> None:
+        self.pipe: Optional[Pipeline] = None
+
+    def fit(self, X: pd.DataFrame, y: Optional[pd.DataFrame] = None) -> "FeatureExtractionTransformer":
+        self.pipe = self.features_pipeline()
+        self.pipe.fit(X, y)
+        return self
+
+    @staticmethod
+    def features_pipeline() -> Pipeline:
+        ohe = ColumnTransformer(
+            transformers=[
+                (
+                    "ohe",
+                    OneHotEncoder(handle_unknown="ignore", sparse_output=False),
+                    ["holiday"],
+                )
+            ],
+            remainder="passthrough",
+            verbose_feature_names_out=False,
+            force_int_remainder_cols=False,
+        )
+        ohe.set_output(transform="pandas")
+        pipline = Pipeline(
+            steps=[
+                ("date_feature_transform", HolidayTransformer()),
+                ("ohe", ohe),
+                ("mean_ship_feature", MeanWeekMonthTransformer()),
+                (
+                    "fourier_features",
+                    FourierFeaturesTransformer(),
+                ),
+            ]
+        )
+        return pipline
+
+    def transform(self, X: pd.DataFrame) -> pd.DataFrame:
+        if self.pipe is None:
+            raise NotFittedError()
+        return self.pipe.transform(X)
