@@ -6,7 +6,7 @@
 docs/Makefile
 docs/make.bat
 datasets
-
+.DS_Store/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
