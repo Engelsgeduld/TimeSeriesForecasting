@@ -4,3 +4,5 @@ scikit-learn>=1.6.1
 pandas>=2.2.3
 xgboost >= 3.0.0
 workalendar >= 17.0.0
+catboost >= 1.2.8
+statsmodels >= 0.14.4
