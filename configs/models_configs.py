@@ -1,10 +1,10 @@
 import numpy as np
 import xgboost as xgb
+from catboost import CatBoostRegressor
 from sklearn.ensemble import GradientBoostingRegressor
 from sklearn.linear_model import Lasso, Ridge
 from sklearn.neighbors import KNeighborsRegressor
 from sklearn.svm import SVR
-from catboost import CatBoostRegressor
 
 XGBRegressorConfig = (
     xgb.XGBRegressor,
@@ -16,11 +16,7 @@ XGBRegressorConfig = (
 
 CatBoostConfig = (
     CatBoostRegressor,
-    {
-        "learning_rate": np.logspace(-2, -1, 3),
-        "max_depth": [3, 5, 7],
-        "verbose": [0]
-    },
+    {"learning_rate": np.logspace(-2, -1, 3), "max_depth": [3, 5, 7], "verbose": [0]},
 )
 
 
