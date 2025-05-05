@@ -22,7 +22,7 @@ def train_test_split_by_months(df: pd.DataFrame, date_column: str, test_months: 
 
     max_date = df[date_column].max()
     max_date = max_date.replace(day=1)
-    test_start = max_date - pd.DateOffset(months=test_months)
+    test_start = max_date - pd.DateOffset(months=test_months - 1)
     test_start = test_start.replace(day=1)
 
     df["mark"] = np.where(df[date_column] < test_start, "train", "test")

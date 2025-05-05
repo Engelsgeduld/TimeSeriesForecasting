@@ -30,7 +30,7 @@ class KeyTransformer(BaseEstimator, TransformerMixin):
         return self
 
     def transform(self, X: pd.DataFrame) -> pd.DataFrame:
-        X["key"] = X["channel"] + "/" + X["group"] + "/" + X["product"]
+        X["key"] = X["channel"].astype("str") + "/" + X["group"].astype("str") + "/" + X["product"].astype("str")
         return X
 
 
@@ -89,25 +89,23 @@ class DateRangeFilledTransformerSec(BaseEstimator, TransformerMixin):
         date_range = pd.date_range(X["date"].min(), X["date"].max(), freq="D")
         missing_data = []
         unique_keys = X["key"].unique()
-
         for key in unique_keys:
             product_data = X[X["key"] == key]
             existing_dates = list(set(product_data["date"]))
             missing_dates = date_range.difference(existing_dates)
-
             if missing_dates.empty:
                 continue
+            mark_col = np.where(missing_dates <= test_separator, "train", "test")
             new_dt = pd.DataFrame(
                 {
                     "date": missing_dates,
-                    "ship": 0,
-                    "discount": 0,
-                    "discount.1": 0,
-                    "key": key,
-                    "mark": np.where(missing_dates <= test_separator, "train", "test"),
+                    "ship": [0] * len(missing_dates),
+                    "discount": [0] * len(missing_dates),
+                    "discount.1": [0] * len(missing_dates),
+                    "key": [key] * len(missing_dates),
+                    "mark": mark_col,
                 }
             )
-
             for col in other:
                 new_dt[col] = product_data[col].iloc[0]
             missing_data.append(new_dt)

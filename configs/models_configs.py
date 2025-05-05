@@ -1,5 +1,6 @@
 import numpy as np
 import xgboost as xgb
+from catboost import CatBoostRegressor
 from sklearn.ensemble import GradientBoostingRegressor
 from sklearn.linear_model import Lasso, Ridge
 from sklearn.neighbors import KNeighborsRegressor
@@ -13,9 +14,15 @@ XGBRegressorConfig = (
     },
 )
 
-LassoConfig = (Lasso, {"alpha": np.logspace(-3, 2, 6)})
+CatBoostConfig = (
+    CatBoostRegressor,
+    {"learning_rate": np.logspace(-2, -1, 3), "max_depth": [3, 5, 7], "verbose": [0]},
+)
 
-RidgeConfig = (Ridge, {"alpha": np.logspace(-3, 2, 5)})
+
+LassoConfig = (Lasso, {"alpha": np.logspace(-3, 1, 6)})
+
+RidgeConfig = (Ridge, {"alpha": np.logspace(-3, 1, 5)})
 
 GradientBoostingRegressorConfig = (
     GradientBoostingRegressor,
@@ -43,5 +50,6 @@ ModelsConfigs = {
     "Ridge": RidgeConfig,
     "GradientBoostingRegressor": GradientBoostingRegressorConfig,
     "KNeighborsRegressor": KNeighborsRegressorConfig,
+    "CatBoost": CatBoostConfig,
     "SVR": SVRConfig,
 }
