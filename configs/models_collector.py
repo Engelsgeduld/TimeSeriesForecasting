@@ -1,4 +1,6 @@
-from typing import Any
+from typing import Any, TypeVar
+
+CONFIG_TYPE = TypeVar("CONFIG_TYPE", bound=list[tuple[Any, list[Any]]])
 
 
 class ModelsCollector:
@@ -23,7 +25,7 @@ class ModelsCollector:
         """
         self.models_config = models_config
 
-    def get_configs(self, models_names: list[str]) -> list[tuple[Any, list[Any]]]:
+    def get_configs(self, models_names: list[str]) -> CONFIG_TYPE:
         """
         Retrieves unique configurations for the specified model names.
 

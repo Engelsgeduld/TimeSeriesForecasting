@@ -6,3 +6,4 @@ xgboost >= 3.0.0
 workalendar >= 17.0.0
 catboost >= 1.2.8
 statsmodels >= 0.14.4
+fastapi>=0.115.12
