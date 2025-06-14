@@ -23,7 +23,7 @@ class GroupByDateTransformer(BaseEstimator, TransformerMixin):
                     "ship": "sum",
                     "discount.1": "mean",
                     "price": "mean",
-                    "discount": "max"
+                    "discount": "max",
                 }
             )
             new_data = pd.concat([new_data, grouped], ignore_index=True)
