@@ -2,10 +2,10 @@ from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder
 
-from src.special_preprocessing.date_transformers.features_extraction import FeatureExtractionTransformer
-from src.special_preprocessing.date_transformers.series_comp import DateRangeFilledTransformer, GroupByDateTransformer
-from src.special_preprocessing.date_transformers.series_decomposition import Separation, SeriesDecompositionTransformer
-from src.special_preprocessing.first_special_pipeline.preprocessing import (
+from ..date_transformers.features_extraction import FeatureExtractionTransformer
+from ..date_transformers.series_comp import DateRangeFilledTransformer, GroupByDateTransformer
+from ..date_transformers.series_decomposition import Separation, SeriesDecompositionTransformer
+from ..first_special_pipeline.preprocessing import (
     ChangeTypesTransformer,
     DropDuplicatesTransformer,
     KeyIndexTransformer,
