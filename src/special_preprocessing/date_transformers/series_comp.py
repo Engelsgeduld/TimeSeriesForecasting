@@ -11,7 +11,7 @@ class GroupByDateTransformer(BaseEstimator, TransformerMixin):
         return self
 
     def transform(self, X: pd.DataFrame) -> pd.DataFrame:
-        special_columns = ["discount", "price", "discount.1", "key", "date", "ship"]
+        special_columns = ["discount", "price", "discount.1", "key", "date", "ship", "discount"]
         other = [col for col in X.columns if col not in special_columns]
         new_data = pd.DataFrame()
         keys = X["key"].unique()
@@ -23,6 +23,7 @@ class GroupByDateTransformer(BaseEstimator, TransformerMixin):
                     "ship": "sum",
                     "discount.1": "mean",
                     "price": "mean",
+                    "discount": "max",
                 }
             )
             new_data = pd.concat([new_data, grouped], ignore_index=True)
