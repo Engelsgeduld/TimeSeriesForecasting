@@ -40,10 +40,12 @@ def preprocessing() -> Pipeline:
     return pipline
 
 
+fill_strategy = {"price": "mean", "ship": 0, "discount": 0, "discount.1": 0}
+
 preprocessing_pipeline = Pipeline(
     steps=[
         ("base preprocessing", preprocessing()),
-        ("fill_data_range", DateRangeFilledTransformer()),
+        ("fill_data_range", DateRangeFilledTransformer(fill_config=fill_strategy)),
         ("grouping", GroupByDateTransformer()),
         ("features extraction", FeatureExtractionTransformer()),
         ("decomposition", SeriesDecompositionTransformer()),
