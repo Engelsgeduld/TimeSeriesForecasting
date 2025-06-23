@@ -8,15 +8,12 @@ from sklearn.svm import SVR
 
 XGBRegressorConfig = (
     xgb.XGBRegressor,
-    {
-        "learning_rate": np.logspace(-2, -1, 3),
-        "max_depth": [3, 5, 7],
-    },
+    {"learning_rate": np.logspace(-2, -1, 3), "max_depth": [3, 5, 7], "random_state": [42]},
 )
 
 CatBoostConfig = (
     CatBoostRegressor,
-    {"learning_rate": np.logspace(-2, -1, 3), "max_depth": [3, 5, 7], "verbose": [0]},
+    {"learning_rate": np.logspace(-2, -1, 3), "max_depth": [3, 5, 7], "verbose": [0], "random_seed": [42]},
 )
 
 
@@ -26,10 +23,7 @@ RidgeConfig = (Ridge, {"alpha": np.logspace(-3, 1, 5)})
 
 GradientBoostingRegressorConfig = (
     GradientBoostingRegressor,
-    {
-        "learning_rate": np.logspace(-2, -1, 3),
-        "max_depth": [3, 5, 7],
-    },
+    {"learning_rate": np.logspace(-2, -1, 3), "max_depth": [3, 5, 7], "random_state": [42]},
 )
 
 KNeighborsRegressorConfig = (
