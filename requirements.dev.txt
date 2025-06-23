@@ -6,3 +6,4 @@ pandas-stubs>=2.2.3.250308
 hypothesis>=6.115.6
 seaborn >= 0.13.2
 matplotlib>=3.8.4
+probhet >= 1.1.6
